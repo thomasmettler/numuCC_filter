@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE project [
+<!ENTITY name "data_ext_v10">
+<!ENTITY version "v07_07_03">
+<!ENTITY qualifier "e17:prof">
+<!ENTITY dataset "wvdp_prod_reco2_extunbiased_v10_mcc8_v4_good">
+<!ENTITY user "wvdp">
+]>
+<project name="&name;">
+    <!-- Doesn't matter for non-generating jobs -->
+    <numevents>161940</numevents>
+
+    <!--  Operating System  -->
+    <os>SL6</os>
+
+    <!--  Batch resources  -->
+    <resource>DEDICATED,OPPORTUNISTIC</resource>
+
+
+    <!--  Larsoft information  -->
+    <larsoft>
+        <tag>&version;</tag>
+        <qual>&qualifier;</qual>
+        <fcldir>/uboone/app/users/&user;/Larsoft/srcs/ProtoTyping/ProtoTyping/CosmicStudies/job</fcldir>
+        <local>/pnfs/uboone/resilient/users/&user;/submission/ubc_v7_7_9Nov.tar</local>
+    </larsoft>
+
+    <!--  Project stages  -->
+    <stage name="cosmicstudies">
+        <fcl>cosmicstudies_data.fcl</fcl>
+        
+        <outdir>/pnfs/uboone/resilient/users/&user;/&version;/&name;</outdir>
+        <logdir>/pnfs/uboone/scratch/users/&user;/log/&version;/&name;</logdir>
+        <workdir>/pnfs/uboone/resilient/users/&user;/work/&version;/&name;</workdir>
+        <bookdir>/uboone/data/users/&user;/book/&version;/&name;</bookdir>>
+        <inputdef>&dataset;</inputdef>
+        <numjobs>330</numjobs>
+        <disk>5GB</disk>
+        <memory>1999</memory>
+        <maxfilesperjob>14</maxfilesperjob>
+        <jobsub>--expected-lifetime=4h -Q --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub>
+        <jobsub_start>--append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub_start> 
+      
+       <schema>root</schema>
+    </stage>
+    <!--  file type  -->
+    <!-- <filetype>mc</filetype> -->
+    <!--  run type  -->
+    <!-- <runtype>physics</runtype> -->
+</project>

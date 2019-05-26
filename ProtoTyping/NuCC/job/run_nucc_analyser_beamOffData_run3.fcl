@@ -1,0 +1,7 @@
+#include "nucc_analyser_data.fcl"
+
+physics.producers.pandoraSliceId.SliceIdTool.BeamWindowStartTime: 3.570
+physics.producers.pandoraSliceId.SliceIdTool.BeamWindowEndTime:   5.250
+
+physics.producers.pandoraSliceId.SliceIdTool.FlashMatchConfig.PhotonLibHypothesis.PMTChannelCorrection: [1.57, 1.55, 1.49, 1.65, 1.61, 1.58, 1.7 , 1.72, 1.52, 1.64, 1.49, 1.6 , 1.57, 1.64, 1.6 , 1.58, 1.49, 1.63, 1.6 , 1.63, 1.48, 1.68, 1.6 , 1.58, 1.62, 1.54, 1.63, 1.49, 1.5 , 1.56, 1.61, 1.25]
+#physics.producers.pandoraSliceId.SliceIdTool.FlashMatchConfig.PhotonLibHypothesis.CCVCorrection: [0.962, 0.872, 1.055, 0.874, 0.833, 0.886, 1.223, 0.949, 0.903, 0.853, 1.020, 1.072, 1.113, 1.026, 0.894, 1.000, 1.095, 0.926, 1.084, 1.058, 1.016, 1.052, 1.053, 0.880, 0.921, 0.919, 0.864, 0.958, 0.618, 0.927, 0.706, 0.913]

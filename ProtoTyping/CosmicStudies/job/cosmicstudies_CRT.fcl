@@ -1,0 +1,82 @@
+#include "services_microboone.fcl"
+
+BEGIN_PROLOG
+
+cosmicstudies_analyzer:
+{ 
+    module_type:                "CosmicStudies"
+    pfp_producer:               "pandoraCosmic"
+    is_mcc9:                    true            # mcc9 spacecharge
+    is_data:                    false
+    is_true_nu:                 true
+    is_slimmed:                 true            # reco-truth matching
+    verbose_output:             true
+}
+
+crtdata_analyzer:
+{ 
+    module_type:                "CRTdata"
+    CRTHit_producer:            "crthitsim"
+    is_data:                    false
+}
+
+END_PROLOG
+
+process_name : CosmicStudiesCRT      #The process name must NOT contain any underscores
+
+source: 
+{
+  module_type: RootInput
+  maxEvents:   -1
+}
+
+services: {
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+  
+  message:                       @local::standard_info
+  TPCEnergyCalibService:         @local::microboone_tpcenergycalib_service
+  SpaceCharge:                   @local::microboone_spacecharge
+  DetectorProperties:            @local::microboone_detproperties
+  LArProperties:                 @local::microboone_properties
+  DetectorClocksService:         @local::microboone_detectorclocks
+
+  scheduler:    { defaultExceptions: false }    # Make all uncaught exceptions fatal.
+  TFileService: { fileName: "CosmicStudiesCRT_tree.root" }
+}
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName:    "%ifb_%tc_cosmicstudiesCRT.root"
+   dataTier:    "reconstructed"
+   compressionLevel: 1
+   }
+}
+
+services.SpaceCharge.EnableCorrSCE:       true
+services.SpaceCharge.EnableSimEfieldSCE:  true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.DetectorPropertiesService.NumberTimeSamples:        6400
+services.DetectorPropertiesService.ReadOutWindowSize:        6400
+services.DetectorClocksService.InheritClockConfig:           false
+services.DetectorClocksService.TriggerOffsetTPC:             -0.400e3
+services.DetectorClocksService.TrigModuleName:               "daq"
+
+
+physics: {
+  
+  producers: {}
+  analyzers: { 
+                cosmicstudies: @local::cosmicstudies_analyzer 
+                crtdata: @local::crtdata_analyzer
+             }
+  filters: {}
+
+  ana: [ cosmicstudies, crtdata ]
+  stream: [ out1 ]
+  end_paths:    [ ana ]
+}
+

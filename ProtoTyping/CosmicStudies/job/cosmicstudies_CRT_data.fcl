@@ -1,0 +1,7 @@
+#include "cosmicstudies_CRT.fcl"
+
+physics.analyzers.cosmicstudies.is_data: true
+physics.analyzers.cosmicstudies.is_true_nu: false
+
+physics.analyzers.crtdata.is_data: true
+physics.analyzers.crtdata.CRTHit_producer: "merger"

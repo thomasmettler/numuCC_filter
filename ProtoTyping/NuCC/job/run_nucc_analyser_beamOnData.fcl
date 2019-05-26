@@ -1,0 +1,5 @@
+#include "nucc_analyser_data.fcl"
+
+physics.producers.pandoraSliceId.SliceIdTool.BeamWindowStartTime: 3.195
+physics.producers.pandoraSliceId.SliceIdTool.BeamWindowEndTime:   4.875
+physics.producers.pandoraSliceId.SliceIdTool.HasCRT:   false
