@@ -1,0 +1,88 @@
+# FHiCL document used to run the "driver" executable. To learn more
+#  about the FHiCL language, please look at
+#  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
+
+#include "time_memory_tracker_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+
+process_name: ccnumufilter
+
+events_to_generate: 200
+run_number: 101
+
+services:{
+  TFileService: { fileName: "NuCCFilter_%#_QP.root" }
+}
+source:
+{
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+
+} # source
+
+physics:
+{	
+  analyzers:
+  {
+  }
+  producers:
+  {
+  }
+  filters:{
+  
+    NuCCfilter:
+     {
+      module_type: "NuccFilter"
+      pfp_producer: "pandoraSliceId"
+      hitfinder_producer: "pandoraSliceId"
+      
+      ########## cut variables ##########
+      NuScore_cut : 0.087 # 0=disabled
+      NuPDG_cut : 14
+      startcontained_cut : 1
+      track_length_cut : 20
+      track_score_cut : 0.97
+      vrx_dist_cut : 5
+      longest_track_cut : 1
+      ##topologicalScore_cut : 0.06 ## this the nuscore cut
+      #flashMatchScore_cut : 10 # not implemented
+      #flashMatchScore_per_bestCosmicMatch_cut : 4 # not implemented
+      track_chi2_muon_per_track_chi2_proton : 0.12
+      track_chi2_proton_cut : 100
+      track_chi2_muon_cut : 20
+
+      vertex_start_x_cut : 9.45 # = -1.55 + 10
+      vertex_start_y_cut : -105.53 # = -115.53 + 10
+      vertex_start_z_cut : 10.1 # = 0.1 + 10
+
+      vertex_end_x_cut : 244.8 # = 254.8 - 10
+      vertex_end_y_cut : 107.47 # = 117.47 - 10
+      vertex_end_z_cut : 986.9 # = 1036.9 - 50
+      #######################################
+
+      # isData: true 
+      # hasMCNeutrino: false
+
+      verbose: 1
+
+    }
+  }
+  # stream1: [ out1 ]
+  filtering: [ NuCCfilter ]
+  trigger_paths: [ filtering ]
+  
+  # end_paths: [ stream1 ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "NuMUCCFilter_%ifb_%tc_%#.root"
+    SelectEvents: [ filtering ]
+  }
+}
+
+

@@ -227,7 +227,7 @@ bool NuCCFilter::GetReconstructed(art::Event const &evt)
   if (!trackPIDAssn.isValid()){
     std::cout << "[NuCCFilter::FillReconstructed] Event failed: PID is invalid" << std::endl;
     counter_trackPIDAssn++;
-    return false;
+    //return false;
   } 
   //check the neutrino information
   art::Ptr<recob::PFParticle> pfnu = pfneutrinos.front();
