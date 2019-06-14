@@ -41,6 +41,14 @@ bool TrackHelper::getPID(std::map<std::string, float> &pid_map,
                             {
                                 pid_map.insert ( std::pair<std::string,float>("chi2_muon", AlgScore.fValue) );
                             }
+                            else if (AlgScore.fAssumedPdg == 211)
+                            {
+                                pid_map.insert ( std::pair<std::string,float>("chi2_pion", AlgScore.fValue) );
+                            }
+                            else if (AlgScore.fAssumedPdg == 321)
+                            {
+                                pid_map.insert ( std::pair<std::string,float>("chi2_kaon", AlgScore.fValue) );
+                            }
                         }
                     }
                 }
