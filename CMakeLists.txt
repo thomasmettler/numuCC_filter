@@ -15,7 +15,7 @@
 # use cmake 2.8 or later
 cmake_minimum_required (VERSION 2.8)
 
-project(ProtoTyping)
+project(numuCCfilter)
 
 # cetbuildtools contains our cmake modules
 SET ( CETBUILDTOOLS_VERSION $ENV{CETBUILDTOOLS_VERSION} )
@@ -62,7 +62,7 @@ include(ArtMake)
 include(BuildPlugins)
 
 # ADD SOURCE CODE SUBDIRECTORIES HERE
-add_subdirectory(ProtoTyping)
+add_subdirectory(numuCCfilter)
 
 # ups - table and config files
 add_subdirectory(ups)

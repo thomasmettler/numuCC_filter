@@ -793,6 +793,24 @@ void NumuCCana::initialize_pot()
   _sr_tree->Branch("endtime",            &_sr_endtime,            "endtime/D");
   _sr_tree->Branch("pot",                &_sr_pot,                "pot/D");
  // _sr_tree->Branch("event_count",        &event_counter,          "event count/I");
+  std::cout << "-------Using the following fcl parameters:-------" << std::endl;
+  std::cout << "Pandora label:\t\t" << m_pfp_producer << std::endl;
+  std::cout << "hitfinder label:\t\t" << m_hitfinder_producer << std::endl;
+  std::cout << "geant producer label:\t\t" << m_geant_producer << std::endl;
+  std::cout << "mcp producer label:\t\t" << m_hit_mcp_producer << std::endl;
+  std::cout << "DAQ label:\t\t" << data_label_DAQHeader_ << std::endl;
+  std::cout << "Beam flash label:\t" << data_label_flash_beam_ << std::endl;  std::cout << "mcp producer label:\t\t" << m_hit_mcp_producer << std::endl;
+  std::cout << "CRT hit label:\t\t" << data_label_crthit_ << std::endl;
+  std::cout << "CRT T0 asso label:\t" << data_label_crtT0asso_ << std::endl;
+  
+  std::cout << "fHardDelay:\t\t" << fHardDelay_ << std::endl;
+  std::cout << "fCRTT0off:\t\t" << fCRTT0off_ << std::endl;
+  std::cout << "Beam start:\t\t" << beam_start_ << std::endl;
+  std::cout << "Beam end:\t\t" << beam_end_ << std::endl;
+
+  std::cout << "is_data:\t\t\t" << is_data_ << std::endl;
+  std::cout << "verbose:\t\t\t" << verbose_ << std::endl;
+  std::cout << "------------end fcl parameters-------------------" << std::endl;
   
 }
 void NumuCCana::endSubRun(art::SubRun const &sr){
