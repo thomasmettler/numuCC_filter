@@ -149,6 +149,7 @@ private:
   TTree* my_event_;
   int has_neutrino_ = -1;
   double NuScore_ = -1;
+  double FlashScore_ = -1;
   int NuPDG_ = 0;
   int NumPfp_ = -1;
   double Vx_=-999, Vy_=-999, Vz_=-999;
@@ -379,8 +380,9 @@ bool NumuCCana::GetVertex(art::Event const &evt)
     //check the topological score ov the event
     const larpandoraobj::PFParticleMetadata::PropertiesMap &neutrino_properties = neutrino_metadata_vec.front()->GetPropertiesMap();
     NuScore_ = neutrino_properties.at("NuScore"); // nuscore $$
+    //FlashScore_ = neutrino_properties.at("FlashScore");
     if(verbose_ !=0) for (auto& t : neutrino_properties) std::cout << t.first << " " << t.second << std::endl;
-    
+    //for (auto& t : neutrino_properties) std::cout << t.first << " " << t.second << std::endl;
     //check the vertex position, if in fiducial volume
     const recob::Vertex::Point_t &neutrino_vtx = neutrino_vertex_vec.front()->position();
     Nu_Vx_ = neutrino_vtx.X();
@@ -646,6 +648,7 @@ void NumuCCana::clearEvent(){ // reset all pfp related vectors
   
   has_neutrino_ = -1;
   NuScore_ = -1;
+  FlashScore_ = -1;
   NuPDG_ = 0;
   NumPfp_ = -1;
   Vx_=-999, Vy_=-999, Vz_=-999;
@@ -708,8 +711,9 @@ void NumuCCana::initialize_tree()
   //tree stuff for hits: //////////////////////////////////////////////////////////////////////////////////
   my_event_ = tfs->make<TTree>("event","numuCC event tree");
   my_event_->Branch("NuScore",           &NuScore_,               "NuScore/D");
+  my_event_->Branch("FlashScore",        &FlashScore_,            "FlashScore/D");
   my_event_->Branch("NuPDG",             &NuPDG_,                 "NuPDG/I");
-  my_event_->Branch("NumPfp_",           &NumPfp_,                "NumPfp/I");
+  my_event_->Branch("NumPfp",           &NumPfp_,                "NumPfp/I");
   
   my_event_->Branch("Nu_Vx",             &Nu_Vx_,                 "Nu_Vx/D");
   my_event_->Branch("Nu_Vy",             &Nu_Vy_,                 "Nu_Vy/D");
