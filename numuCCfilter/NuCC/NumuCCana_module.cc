@@ -136,6 +136,7 @@ private:
   std::string                         data_label_flash_beam_;
   std::string                         data_label_crthit_;
   std::string                         data_label_crtT0asso_;
+  std::string                         data_label_crttricorr_;
 
   int verbose_ = 0;
   int fHardDelay_;
@@ -144,12 +145,22 @@ private:
   double beam_end_ = 0;
   bool is_data_ = false;
   
+  double crt_trig_corr_mean = 0;
+  double crt_trig_corr_med = 0;
+  
+  double a_crthit_ts0 = 0;
+  double a_crthit_ts1 = 0;
+  int a_adc_length = 0;
+  double a_crt_adc = 0;
+  int a_t0_counter = 0;
+  
   art::ServiceHandle<art::TFileService> tfs;
   
   TTree* my_event_;
   int has_neutrino_ = -1;
   double NuScore_ = -1;
   double FlashScore_ = -1;
+  double FlashScoreTime_ = -1;
   int NuPDG_ = 0;
   int NumPfp_ = -1;
   double Vx_=-999, Vy_=-999, Vz_=-999;
@@ -243,6 +254,8 @@ NumuCCana::NumuCCana(fhicl::ParameterSet const & pset) :
     data_label_crthit_ = pset.get<std::string>("data_label_crthit");
     data_label_crtT0asso_ = pset.get<std::string>("data_label_crtT0asso");
       
+    data_label_crttricorr_ = pset.get<std::string>("data_label_crttricorr");
+      
     fHardDelay_ = pset.get<int>("fHardDelay",40000);
     fCRTT0off_ = pset.get<int>("fCRTT0off",69000);
     beam_start_ = pset.get<double>("beam_start",3.2);
@@ -257,6 +270,7 @@ NumuCCana::NumuCCana(fhicl::ParameterSet const & pset) :
 void NumuCCana::analyze(art::Event const & evt)
 {
   clearEvent();
+  
   //get the pfparticles and its metadata
   larpandora.CollectPFParticleMetadata(evt, m_pfp_producer, pfparticles, particlesToMetadata);
   larpandora.BuildPFParticleMap(pfparticles, particleMap);
@@ -294,12 +308,22 @@ void NumuCCana::analyze(art::Event const & evt)
   art::Timestamp evtTimeGPS = my_DAQHeader.gps_time();  
   TriTim_sec_ = evtTimeGPS.timeHigh();
   TriTim_nsec_ = evtTimeGPS.timeLow();
+  
+  art::Handle< std::vector<anab::T0> > rawHandle_CRTTriCorr;
+  evt.getByLabel(data_label_crttricorr_, rawHandle_CRTTriCorr); //mergerextra
+  std::vector<anab::T0> const& CRTTriCorrCollection(*rawHandle_CRTTriCorr);
+  for(std::vector<int>::size_type i = 0; i != CRTTriCorrCollection.size(); i++) {
+    crt_trig_corr_med = CRTTriCorrCollection.at(i).fTime;
+    crt_trig_corr_mean = CRTTriCorrCollection.at(i).fTriggerConfidence;
+  }
+  
   // get CRT hits in the beam window
   art::Handle< std::vector<crt::CRTHit> > rawHandle_CRTHit;
   evt.getByLabel(data_label_crthit_, rawHandle_CRTHit); //mergerextra
   std::vector<crt::CRTHit> const& CRTHitCollection(*rawHandle_CRTHit);
   for(std::vector<int>::size_type i = 0; i != CRTHitCollection.size(); i++) {
-    double crthittime = (CRTHitCollection.at(i).ts0_ns + fCRTT0off_ - TriTim_nsec_)/1000.0;
+    //double crthittime = (CRTHitCollection.at(i).ts0_ns + fCRTT0off_ - TriTim_nsec_)/1000.0;
+    double crthittime = (CRTHitCollection.at(i).ts0_ns + crt_trig_corr_med - TriTim_nsec_)/1000.0;
     if( abs( crthittime - (beam_end_ + beam_start_)/2 ) < (beam_end_-beam_start_)/2 ){
         if(verbose_!=0){
           std::cout << "################################################" << std::endl;
@@ -309,7 +333,8 @@ void NumuCCana::analyze(art::Event const & evt)
           std::cout << "################################################" << std::endl;
         }
         //fill tree variables
-        crthit_ts0_ = (double)(CRTHitCollection.at(i).ts0_ns + fCRTT0off_ - TriTim_nsec_)/1000.0;
+        //crthit_ts0_ = (double)(CRTHitCollection.at(i).ts0_ns + fCRTT0off_ - TriTim_nsec_)/1000.0;
+        crthit_ts0_ = (double)(CRTHitCollection.at(i).ts0_ns + crt_trig_corr_med - TriTim_nsec_)/1000.0;
         crthit_ts1_ = ((double)CRTHitCollection.at(i).ts1_ns + fHardDelay_)/1000.0;
         crt_adc_ = CRTHitCollection.at(i).peshit;
         adc_length_ = CRTHitCollection.at(i).pesmap.begin()->second.size();
@@ -368,6 +393,28 @@ bool NumuCCana::GetVertex(art::Event const &evt)
   //check the neutrino information
   art::Ptr<recob::PFParticle> pfnu = pfneutrinos.front();
   NuPDG_ = pfnu->PdgCode(); // has to be 14
+  
+  art::Handle< std::vector<recob::PFParticle> > theParticles;
+  evt.getByLabel(m_pfp_producer, theParticles);
+  
+  art::FindManyP<anab::T0> nuFlashScoreAsso(theParticles, evt, "flashmatch");
+  //std::cout << "##################" << pfnu->Self() << std::endl;
+  //std::cout << "##################" << nuFlashScoreAsso.size() << std::endl;
+  //std::cout << "##################" << pfnu->IsPrimary() << std::endl;
+  const std::vector<art::Ptr<anab::T0> > T0_v = nuFlashScoreAsso.at( pfnu.key() );
+  //const std::vector<const anab::T0*>& T0_v = nuFlashScoreAsso.at( pfnu.key() );
+  //std::cout << "######### Flash Score: " << T0_v.at(0)->Time() << " ########## " << std::endl;
+  //std::cout << "######### Flash Score: " << T0_v.at(0)->TriggerType() << " ########## " << std::endl;
+  //std::cout << "######### Flash Score: " << T0_v.at(0)->TriggerConfidence() << " ########## " << std::endl;
+  //std::cout << "######### Flash Score: " << T0_v.at(0)->TriggerBits() << " ########## " << std::endl;
+  //std::cout << "######### Flash Score: " << T0_v.size() << " ########## " << std::endl;
+  if(T0_v.size()==1){
+  FlashScoreTime_ = T0_v.at(0)->Time();
+  FlashScore_ = T0_v.at(0)->TriggerConfidence();
+  }
+  else std::cout << "[NumuCCana::FillReconstructed] Flash score invalid" << std::endl;
+  
+  
   lar_pandora::MetadataVector neutrino_metadata_vec = particlesToMetadata.at(pfnu);
   lar_pandora::VertexVector neutrino_vertex_vec = particlesToVertices.at(pfnu);
   //check if there is a neutrino vertex reconstructed and only one
@@ -398,6 +445,7 @@ bool NumuCCana::GetVertex(art::Event const &evt)
   NuShowers_ = 0;
   NuTracks_ = 0;
   art::FindMany<anab::T0> trk_T0_assn_v(trackHandle, evt, data_label_crtT0asso_);
+  art::FindMany<crt::CRTHit> trk_crt_assn_v(trackHandle, evt, data_label_crtT0asso_);
   for (auto const pfp : pfdaughters){  //loop over all daughter pfparticles
     if (!pfp->IsPrimary()){ 
       if (particlesToTracks.find(pfp) != particlesToTracks.end() ){ // get the track like pfp
@@ -425,6 +473,15 @@ bool NumuCCana::GetVertex(art::Event const &evt)
           crtt0_DCA_ = T0crt.at(0)->TriggerConfidence();
           crtt0_plane_ = T0crt.at(0)->TriggerBits();
         }
+        const std::vector<const crt::CRTHit*>& CRTHit_v = trk_crt_assn_v.at(this_track.key());
+        for(std::vector<int>::size_type j = 0; j != CRTHit_v.size(); j++) {//CRThitloop
+          //nr_crthit++;
+          a_crthit_ts0 = CRTHit_v.at(j)->ts0_ns;
+          a_crthit_ts1 = CRTHit_v.at(j)->ts1_ns;
+          a_adc_length = CRTHit_v.at(j)->pesmap.begin()->second.size();
+          a_crt_adc = CRTHit_v.at(j)->peshit;
+          a_t0_counter++;
+        } //end crthit loop
       }
       if (particlesToShowers.find(pfp) != particlesToShowers.end()){
         NuShowers_++;
@@ -649,6 +706,7 @@ void NumuCCana::clearEvent(){ // reset all pfp related vectors
   has_neutrino_ = -1;
   NuScore_ = -1;
   FlashScore_ = -1;
+  FlashScoreTime_ = -1;
   NuPDG_ = 0;
   NumPfp_ = -1;
   Vx_=-999, Vy_=-999, Vz_=-999;
@@ -678,6 +736,15 @@ void NumuCCana::clearEvent(){ // reset all pfp related vectors
   crtt0_trig_ = -1;
   crtt0_DCA_ = -1;
   crtt0_plane_ = -1;
+  
+  crt_trig_corr_mean = 0;
+  crt_trig_corr_med = 0;
+  
+  a_crthit_ts0 = 0;
+  a_crthit_ts1 = 0;
+  a_adc_length = 0;
+  a_crt_adc = 0;
+  a_t0_counter = 0;
   
   if(!is_data_){
   NuMCnu = -1; 
@@ -712,6 +779,7 @@ void NumuCCana::initialize_tree()
   my_event_ = tfs->make<TTree>("event","numuCC event tree");
   my_event_->Branch("NuScore",           &NuScore_,               "NuScore/D");
   my_event_->Branch("FlashScore",        &FlashScore_,            "FlashScore/D");
+  my_event_->Branch("FlashScoreTime",        &FlashScoreTime_,            "FlashScoreTime/D");
   my_event_->Branch("NuPDG",             &NuPDG_,                 "NuPDG/I");
   my_event_->Branch("NumPfp",           &NumPfp_,                "NumPfp/I");
   
@@ -751,6 +819,14 @@ void NumuCCana::initialize_tree()
   my_event_->Branch("crtt0_trig",        &crtt0_trig_,            "crtt0_trig/I");
   my_event_->Branch("crtt0_DCA",         &crtt0_DCA_,             "crtt0_DCA/D");
   my_event_->Branch("crtt0_plane",       &crtt0_plane_,           "crtt0_plane/I");
+  
+  my_event_->Branch("crt_trig_corr_mean",&crt_trig_corr_mean,     "crt_trig_corr_mean/D");
+  my_event_->Branch("crt_trig_corr_med", &crt_trig_corr_med,      "crt_trig_corr_med/D");
+  my_event_->Branch("a_crthit_ts0",      &a_crthit_ts0,           "a_crthit_ts0/D");
+  my_event_->Branch("a_crthit_ts1",      &a_crthit_ts1,           "a_crthit_ts1/D");
+  my_event_->Branch("a_adc_length",      &a_adc_length,           "a_adc_length/I");
+  my_event_->Branch("a_crt_adc",         &a_crt_adc,              "a_crt_adc/D");
+  my_event_->Branch("a_t0_counter",      &a_t0_counter,           "a_t0_counter/I");
   
   if(!is_data_){
     my_event_->Branch("MCNu_Interaction",&MCNu_Interaction,"MCNu_Interaction/I");
