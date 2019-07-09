@@ -361,11 +361,11 @@ void CRTTriggerProducer::produce(art::Event &evt)
   
   if(store_t0_ == 1){
     anab::T0 my_t0;
-    my_t0.fTime = 0;  // double
-    my_t0.fTriggerType = 0;    //unsigned int
-    my_t0.fTriggerBits = 0;    //int
-    my_t0.fID = 0;             //int
-    my_t0.fTriggerConfidence = 0; //double
+    my_t0.fTime = crthit_corr_med;  // double, corrected time used median
+    my_t0.fTriggerType = t0_counter;    //unsigned int # of associated CRT hits to tracks
+    my_t0.fTriggerBits = flash_counter;    //int # of matched flashes used...
+    my_t0.fID = flash_tot;             //int # of flashes 
+    my_t0.fTriggerConfidence = crthit_correction; //double, corrected time used mean with outlayer cut
     T0_collection->emplace_back(my_t0);
     evt.put(std::move(T0_collection));
   }
