@@ -1,0 +1,87 @@
+# FHiCL document used to run the "driver" executable. To learn more
+#  about the FHiCL language, please look at
+#  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
+
+#include "time_memory_tracker_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
+#include "services_microboone.fcl"
+
+#include "calorimetry_microboone.fcl"
+#include "mcsfitproducer.fcl"
+#include "config_dedx_calibration.fcl"
+#include "config_particle_identification.fcl"
+#include "calibration_microboone.fcl"
+
+#include "pandoramodules_microboone.fcl"
+
+process_name: ccnumuanalyser
+
+events_to_generate: 200
+run_number: 101
+
+services:{
+  TFileService: { fileName: "NuCCana_%tc_%#_QP.root" }
+  
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+  
+  SpaceCharge:              @local::microboone_spacecharge
+  DetectorPropertiesService:@local::microboone_detproperties
+  LArProperties:            @local::microboone_properties
+  DetectorClocksService:    @local::microboone_detectorclocks
+}
+source:
+{
+  module_type: RootInput
+  inputCommands: [ "keep *_*_*_*" ]
+} # source
+
+physics:
+{	
+  analyzers:
+  {
+    NuCCana:
+     {
+      module_type:            "NumuCCana"
+      pfp_producer:           pandora # "pandoraSliceId" # pandora
+      hitfinder_producer:     gaushit # "pandoraSliceId" # pandora
+      geant_producer:         largeant
+      hit_mcp_producer:       gaushitTruthMatch
+      data_label_crtT0asso:   crttrackmatch # "pandoraCrtHitMatch"
+      data_label_flash_beam:  "simpleFlashBeam"
+      
+      data_label_crthit:      crthitcorr # "mixer"
+      data_label_DAQHeader:   "daq"
+      
+      data_label_crttricorr:  crttigger
+      
+      fHardDelay:             40000         #BNB data is 35520?
+      fTimeZeroOffset:        69100    #used for fTimeSelect=0
+      ## BNB: 3.195 - 4.875 // Ext: 3.570 - 5.250
+      beam_start:             2
+      beam_end:               6
+
+      is_data:                true
+      verbose:                0
+      fill_per_track:         1
+
+    }
+  }
+  producers:{
+  }
+  filters:{
+  }
+  # stream1: [ out1 ]
+  ana: [ NuCCana ]
+  #trigger_paths: [ filtering ]
+  
+  end_paths: [ ana ]
+}
+
+
+services.SpaceCharge.EnableCorrSCE:       true
+services.SpaceCharge.EnableSimEfieldSCE:  true
+services.SpaceCharge.EnableSimSpatialSCE: true
+services.DetectorClocksService.InheritClockConfig:                         false
+services.DetectorClocksService.TriggerOffsetTPC:                          -0.400e3
+

@@ -1,0 +1,57 @@
+BEGIN_PROLOG
+
+NuCCana:
+{
+  module_type:            "NumuCCana"
+  pfp_producer:           pandora # "pandoraSliceId" # pandora
+  hitfinder_producer:     gaushit # "pandoraSliceId" # pandora
+  geant_producer:         largeant
+  hit_mcp_producer:       gaushitTruthMatch
+  data_label_crtT0asso:   crttrackmatch # "pandoraCrtHitMatch"
+  data_label_flash_beam:  "simpleFlashBeam"
+
+  data_label_crthit:      crthitcorr # "mixer"
+  data_label_DAQHeader:   "daq"
+
+  data_label_crttricorr:  crttrigger
+
+  fHardDelay:             40000         #BNB data is 35520?
+  fTimeZeroOffset:        69100    #used for fTimeSelect=0
+  ## BNB: 3.195 - 4.875 // Ext: 3.570 - 5.250
+  beam_start:             2
+  beam_end:               6
+
+  is_data:                true
+  verbose:                0
+  fill_per_track:         1
+
+}
+
+NuCCanaMC:
+{
+  module_type:            "NumuCCana"
+  pfp_producer:           pandora # "pandoraSliceId" # pandora
+  hitfinder_producer:     gaushit # "pandoraSliceId" # pandora
+  geant_producer:         largeant
+  hit_mcp_producer:       gaushitTruthMatch
+  data_label_crtT0asso:   crttrackmatch # "pandoraCrtHitMatch"
+  data_label_flash_beam:  "simpleFlashBeam"
+
+  data_label_crthit:      crthitcorr # "mixer"
+  data_label_DAQHeader:   "daq"
+
+  data_label_crttricorr:  crttrigger
+
+  fHardDelay:             40000         #BNB data is 35520?
+  fTimeZeroOffset:        69100    #used for fTimeSelect=0
+  ## BNB: 3.195 - 4.875 // Ext: 3.570 - 5.250
+  beam_start:             2
+  beam_end:               6
+
+  is_data:                false
+  verbose:                0
+  fill_per_track:         1
+
+}
+    
+END_PROLOG
