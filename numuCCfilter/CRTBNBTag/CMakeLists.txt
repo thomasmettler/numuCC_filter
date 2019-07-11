@@ -1,8 +1,8 @@
 art_make( 
-          LIBRARY_NAME
-                        CRTBNBTag
+          # Needed for standalone c++ helper files
+          LIB_LIBRARIES 
 
-          # Needed for the main module          
+          # Needed for the main module           
           MODULE_LIBRARIES
                         larpandora_LArPandoraInterface
                         larcorealg_Geometry
@@ -35,5 +35,6 @@ art_make(
           )
 
 ##install_headers()
+##add_subdirectory(job)
 install_source()
 install_fhicl()

@@ -277,6 +277,12 @@ void NumuCCana::analyze(art::Event const & evt)
   if (pfparticles.size() == 0){ //this should never happen
     std::cout << "[NumuCCana::filter] Event failed: No reconstructed PFParticles in event is " << pfparticles.size() << std::endl;
     //return false;
+    if (!is_data_) // new for >= v08_00_00_16
+      {
+        FillReconTruthMatching(evt);
+        FillTrueNu(evt);
+        FillTrueNuDaughters(evt);
+      }
   }
   else{
     //Get the neutrino candidate info
@@ -601,19 +607,24 @@ bool NumuCCana::MatchDaughter(art::Event const &evt, const art::Ptr<recob::PFPar
 }
 void NumuCCana::FillTrueNuDaughters(art::Event const &evt)
 {
+  if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNuDaughters] entered function" << std::endl;
   lar_pandora::MCParticleVector mcparticles;
   larpandora.CollectMCParticles(evt, m_geant_producer, mcparticles);
-
+  if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNuDaughters] loop over MC particles of size: " << mcparticles.size() << std::endl;
   for (auto const &mcparticle : mcparticles)
   {
     if (!(mcparticle->Process() == "primary" &&
           mcparticle->T() != 0 &&
           mcparticle->StatusCode() == 1))
       continue;
-
+    if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNuDaughters] in the loop over MC particles" << std::endl;
+    if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNuDaughters] "<< m_geant_producer << " - " << mcparticle->TrackId() << std::endl;
     const art::Ptr<simb::MCTruth> mc_truth = pandoraInterfaceHelper.TrackIDToMCTruth(evt, m_geant_producer, mcparticle->TrackId());
-    if (mc_truth->Origin() == simb::kBeamNeutrino)
+    if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNuDaughters] after trackIDToMCTrth function" << std::endl;
+    if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNuDaughters] " << mc_truth << std::endl;
+    if(0)//if (mc_truth->Origin() == simb::kBeamNeutrino)
     {
+      if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNuDaughters] found daughter of MC beam neutrino" << std::endl;
       fTrueNu_DaughterE.push_back(mcparticle->E());
       fTrueNu_DaughterPDG.push_back(mcparticle->PdgCode());
 
@@ -636,13 +647,17 @@ void NumuCCana::FillTrueNuDaughters(art::Event const &evt)
       fTrueNu_DaughterMatched.push_back(daughter_matched_neutrino_pfp);
       if(verbose_!=0) std::cout << "[NuCC::FillTrueNuDaughters] << PDG: " << mcparticle->PdgCode() << ", E: " << mcparticle->E() << ", was matched? " << fTrueNu_DaughterMatched.back() << std::endl;
     }
+    if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNuDaughters] next MC particle" << std::endl;
   }
+  if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNuDaughters] end of function" << std::endl;
 }
 void NumuCCana::FillReconTruthMatching(art::Event const &evt)
 {
+  if(verbose_!=0) std::cout << "[NumuCCana::FillReconTruthMatching] entered function" << std::endl;
   pandoraInterfaceHelper.Configure(evt, m_pfp_producer, m_pfp_producer, m_hitfinder_producer, m_geant_producer, m_hit_mcp_producer);
+   if(verbose_!=0) std::cout << "[NumuCCana::FillReconTruthMatching] Configured" << std::endl;
   pandoraInterfaceHelper.GetRecoToTrueMatches(matchedParticles);
-  if(verbose_!=0) std::cout << "[NumuCCana::FillReconTruthMatching] ";
+  if(verbose_!=0) std::cout << "[NumuCCana::FillReconTruthMatching] " << std::endl;
   if(verbose_!=0) std::cout << "Number of PFPparticles in event: " << pfparticles.size() << std::endl;
   for (auto it = matchedParticles.begin(); it != matchedParticles.end(); ++it)
   {
@@ -653,12 +668,13 @@ void NumuCCana::FillReconTruthMatching(art::Event const &evt)
 }
 void NumuCCana::FillTrueNu(art::Event const &evt)
 {
+  if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNu] entered function" << std::endl;
   if (!is_data_)
   {
     auto const &generator_handle = evt.getValidHandle<std::vector<simb::MCTruth>>("generator");
     auto const &generator(*generator_handle);
     int NuMCnu = generator.size();
-    if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNu] True neutrinos found: " << NuMCnu;
+    if(verbose_!=0) std::cout << "[NumuCCana::FillTrueNu] True neutrinos found: " << NuMCnu << std::endl;
     if (generator.size() > 0)
     {
       if (generator.front().Origin() != simb::kBeamNeutrino)

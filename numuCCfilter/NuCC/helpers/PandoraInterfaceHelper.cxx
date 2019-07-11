@@ -149,7 +149,7 @@ void PandoraInterfaceHelper::Configure(art::Event const &e,
 
 art::Ptr<simb::MCTruth> PandoraInterfaceHelper::TrackIDToMCTruth(art::Event const &e, std::string m_geant_producer, int geant_track_id)
 {
-
+  std::cout << "[PandoraInterfaceHelper] " << "entered function" << std::endl;
   lar_pandora::MCTruthToMCParticles truthToParticles;
   lar_pandora::MCParticlesToMCTruth particlesToTruth;
 
@@ -159,9 +159,11 @@ art::Ptr<simb::MCTruth> PandoraInterfaceHelper::TrackIDToMCTruth(art::Event cons
   {
     if (iter.first->TrackId() == geant_track_id)
     {
+      std::cout << "[PandoraInterfaceHelper] " << "give return" << std::endl;
       return iter.second;
     }
   }
+  std::cout << "[PandoraInterfaceHelper] " << "Error TrackIDToMCTruth, return null pointer" << std::endl;
   art::Ptr<simb::MCTruth> null_ptr;
   return null_ptr;
 }
